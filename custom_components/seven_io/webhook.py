@@ -199,7 +199,13 @@ def empfang_registrieren(hass: HomeAssistant, entry: ConfigEntry, ziel_url: str)
     nonces: dict[str, float] = {}
 
     async def _handler(hass: HomeAssistant, _id: str, request: web.Request) -> web.Response:
-        body = await request.read()
+        # Über den Nabu-Casa-Cloudhook kommt ein MockRequest ohne read(); text()
+        # haben beide. Der Body ist UTF-8, die Rückwandlung ändert keine Bytes.
+        body = (await request.text()).encode()
+        _LOGGER.debug(
+            "Webhook-Header: %s",
+            {k: v for k, v in request.headers.items() if k.lower().startswith("x-")},
+        )
         geheimnis = entry.options.get(CONF_SIGNING_SECRET)
         if geheimnis:
             grund = signatur_pruefen(

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.1
+
+- Fix: Webhooks über den Nabu-Casa-Cloudhook liefen auf einen Fehler (`MockRequest`
+  hat kein `read()`), eingehende Nachrichten kamen dadurch nicht als Event an.
+- Signatur-Header eingehender Webhooks im Debug-Log.
+
 ## 0.1.0
 
 - Einrichtung über die Oberfläche: API-Key (geprüft über Guthaben und Agent-Liste),

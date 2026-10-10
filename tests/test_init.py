@@ -148,3 +148,25 @@ async def test_cloudhook_url_wird_angemeldet(hass: HomeAssistant, aioclient_mock
         await hass.async_block_till_done()
     posts = [c for c in aioclient_mock.mock_calls if c[0] == "POST"]
     assert posts[0][2]["target_url"] == "https://hooks.nabu.casa/tok"
+
+
+async def test_empfang_ueber_cloudhook_mockrequest(hass: HomeAssistant, aioclient_mock):
+    """Nabu Casa liefert einen MockRequest ohne read() (Fehler vom 10.10.2026)."""
+    from homeassistant.components.webhook import async_handle_webhook
+    from homeassistant.util.aiohttp import MockRequest
+
+    _konto(aioclient_mock)
+    entry = _eintrag(hass, signing_secret=None)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    events = []
+    hass.bus.async_listen(EVENT_MESSAGE_RECEIVED, events.append)
+    body = json.dumps({"agent_id": "ag1", "content_type": "text", "id": 3,
+                       "sender": "49170", "text": "Hallo"}).encode()
+    antwort = await async_handle_webhook(
+        hass, WID, MockRequest(content=body, mock_source="cloud", method="POST",
+                               headers={"Content-Type": "application/json"})
+    )
+    await hass.async_block_till_done()
+    assert antwort.status == 200
+    assert [e.data["text"] for e in events] == ["Hallo"]
