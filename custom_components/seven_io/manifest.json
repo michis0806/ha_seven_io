@@ -1,0 +1,20 @@
+{
+  "domain": "seven_io",
+  "name": "seven.io",
+  "after_dependencies": [
+    "cloud"
+  ],
+  "codeowners": [
+    "@michis0806"
+  ],
+  "config_flow": true,
+  "dependencies": [
+    "webhook"
+  ],
+  "documentation": "https://github.com/michis0806/ha_seven_io",
+  "integration_type": "service",
+  "iot_class": "cloud_push",
+  "issue_tracker": "https://github.com/michis0806/ha_seven_io/issues",
+  "requirements": [],
+  "version": "0.1.0"
+}

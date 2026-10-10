@@ -1,0 +1,197 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect seven.io",
+        "description": "Create an API key in the seven.io dashboard (Developer → API keys). It needs access to balance, RCS and webhooks; sending will additionally need SMS, RCS and voice. Using a subaccount keeps business and private messages apart.",
+        "data": {
+          "api_key": "API key"
+        },
+        "data_description": {
+          "api_key": "Checked right away against the balance and the RCS agent list."
+        }
+      },
+      "settings": {
+        "title": "Sending and signing",
+        "description": "Agents in test mode reach only the test numbers you unlocked for them in the seven.io dashboard — that is fine for permanent use.",
+        "data": {
+          "rcs_agent": "RCS agent",
+          "sms_sender": "SMS sender",
+          "signing_secret": "Signing secret"
+        },
+        "data_description": {
+          "rcs_agent": "Sender for RCS messages. Status in brackets: test, pending or launched (generic seven agents: wait, approved or denied).",
+          "sms_sender": "Up to 11 letters/digits or up to 16 digits. Empty = seven.io default.",
+          "signing_secret": "From the seven.io dashboard (Developer → API settings). With it, every incoming webhook is checked for a valid signature. Strongly recommended as soon as messages trigger automations."
+        }
+      },
+      "webhook": {
+        "title": "Incoming messages",
+        "description": "How should seven.io reach Home Assistant for incoming RCS messages and status reports? The integration registers its own webhooks with seven.io and only ever removes those; existing webhooks in the account stay untouched.",
+        "menu_options": {
+          "nabu_casa": "Nabu Casa cloudhook (no port forwarding)",
+          "custom_url": "Own URL (reverse proxy)",
+          "none": "None (send only)"
+        }
+      },
+      "nabu_casa": {
+        "title": "Nabu Casa",
+        "description": "Home Assistant Cloud creates a public hooks.nabu.casa address for this integration.",
+        "data": {
+          "event_types": "Webhook types"
+        },
+        "data_description": {
+          "event_types": "RCS covers incoming RCS messages, button replies, locations, files and read/delivery status. Incoming SMS needs an inbound number at seven.io."
+        }
+      },
+      "custom_url": {
+        "title": "Own URL",
+        "description": "Public HTTPS base address of this Home Assistant instance, e.g. https://ha.example.com. The integration appends /api/webhook/ plus a random ID.",
+        "data": {
+          "base_url": "Base URL",
+          "event_types": "Webhook types"
+        },
+        "data_description": {
+          "base_url": "Must be reachable from the internet via HTTPS.",
+          "event_types": "RCS covers incoming RCS messages, button replies, locations, files and read/delivery status. Incoming SMS needs an inbound number at seven.io."
+        }
+      },
+      "reauth_confirm": {
+        "title": "New API key",
+        "description": "seven.io rejected the API key. Enter a new one.",
+        "data": {
+          "api_key": "API key"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "seven.io rejected the API key (wrong key or missing permissions).",
+      "cannot_connect": "seven.io is not reachable.",
+      "cloud_not_connected": "Home Assistant Cloud is not connected right now.",
+      "cloud_no_subscription": "No active Home Assistant Cloud subscription.",
+      "no_event_types": "Choose at least one webhook type.",
+      "url_not_https": "The URL must start with https://.",
+      "sender_invalid": "Up to 11 letters/digits or up to 16 digits."
+    },
+    "abort": {
+      "already_configured": "This API key is already set up.",
+      "reauth_successful": "API key updated."
+    }
+  },
+  "options": {
+    "step": {
+      "settings": {
+        "title": "Sending and signing",
+        "description": "Agents in test mode reach only the test numbers you unlocked for them in the seven.io dashboard — that is fine for permanent use.",
+        "data": {
+          "rcs_agent": "RCS agent",
+          "sms_sender": "SMS sender",
+          "signing_secret": "Signing secret"
+        },
+        "data_description": {
+          "rcs_agent": "Sender for RCS messages. Status in brackets: test, pending or launched (generic seven agents: wait, approved or denied).",
+          "sms_sender": "Up to 11 letters/digits or up to 16 digits. Empty = seven.io default.",
+          "signing_secret": "From the seven.io dashboard (Developer → API settings). With it, every incoming webhook is checked for a valid signature. Strongly recommended as soon as messages trigger automations."
+        }
+      },
+      "webhook": {
+        "title": "Incoming messages",
+        "description": "How should seven.io reach Home Assistant for incoming RCS messages and status reports? The integration registers its own webhooks with seven.io and only ever removes those; existing webhooks in the account stay untouched.",
+        "menu_options": {
+          "nabu_casa": "Nabu Casa cloudhook (no port forwarding)",
+          "custom_url": "Own URL (reverse proxy)",
+          "none": "None (send only)"
+        }
+      },
+      "nabu_casa": {
+        "title": "Nabu Casa",
+        "description": "Home Assistant Cloud creates a public hooks.nabu.casa address for this integration.",
+        "data": {
+          "event_types": "Webhook types"
+        },
+        "data_description": {
+          "event_types": "RCS covers incoming RCS messages, button replies, locations, files and read/delivery status. Incoming SMS needs an inbound number at seven.io."
+        }
+      },
+      "custom_url": {
+        "title": "Own URL",
+        "description": "Public HTTPS base address of this Home Assistant instance, e.g. https://ha.example.com. The integration appends /api/webhook/ plus a random ID.",
+        "data": {
+          "base_url": "Base URL",
+          "event_types": "Webhook types"
+        },
+        "data_description": {
+          "base_url": "Must be reachable from the internet via HTTPS.",
+          "event_types": "RCS covers incoming RCS messages, button replies, locations, files and read/delivery status. Incoming SMS needs an inbound number at seven.io."
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "seven.io rejected the API key (wrong key or missing permissions).",
+      "cannot_connect": "seven.io is not reachable.",
+      "cloud_not_connected": "Home Assistant Cloud is not connected right now.",
+      "cloud_no_subscription": "No active Home Assistant Cloud subscription.",
+      "no_event_types": "Choose at least one webhook type.",
+      "url_not_https": "The URL must start with https://.",
+      "sender_invalid": "Up to 11 letters/digits or up to 16 digits."
+    }
+  },
+  "selector": {
+    "event_types": {
+      "options": {
+        "rcs": "RCS (incoming messages and status)",
+        "sms_mo": "Incoming SMS",
+        "dlr": "SMS delivery reports"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "guthaben": {
+        "name": "Balance"
+      },
+      "rcs_agent": {
+        "name": "RCS agent",
+        "state": {
+          "test": "Test mode",
+          "pending": "Pending approval",
+          "launched": "Launched",
+          "wait": "Waiting",
+          "approved": "Approved",
+          "denied": "Denied",
+          "unbekannt": "Unknown"
+        },
+        "state_attributes": {
+          "agent_id": {
+            "name": "Agent-ID"
+          },
+          "display_name": {
+            "name": "Display name"
+          },
+          "generic": {
+            "name": "Generic seven agent"
+          },
+          "created": {
+            "name": "Created"
+          },
+          "logo_url": {
+            "name": "Logo"
+          }
+        }
+      },
+      "letzter_webhook": {
+        "name": "Last webhook"
+      }
+    }
+  },
+  "issues": {
+    "agent_missing": {
+      "title": "RCS agent not found",
+      "description": "seven.io no longer lists the RCS agent {agent}. Choose another agent in the integration options."
+    },
+    "agent_denied": {
+      "title": "RCS agent denied",
+      "description": "seven.io denied the use of the RCS agent {agent}. RCS messages via this agent will fail."
+    }
+  }
+}
