@@ -40,10 +40,12 @@
         "title": "Nabu Casa",
         "description": "Home Assistant Cloud legt für diese Integration eine öffentliche hooks.nabu.casa-Adresse an. Geschützt ist sie durch die lange Zufallsadresse; die Signatur-Header von seven.io reicht Nabu Casa nicht weiter.",
         "data": {
-          "event_types": "Webhook-Typen"
+          "event_types": "Webhook-Typen",
+          "allowed_senders": "Erlaubte Absender"
         },
         "data_description": {
-          "event_types": "RCS umfasst eingehende RCS-Nachrichten, Button-Antworten, Standorte, Dateien sowie Zustell- und Lesestatus. Eingehende SMS brauchen eine Eingangsnummer bei seven.io."
+          "event_types": "RCS umfasst eingehende RCS-Nachrichten, Button-Antworten, Standorte, Dateien sowie Zustell- und Lesestatus. Eingehende SMS brauchen eine Eingangsnummer bei seven.io.",
+          "allowed_senders": "Rufnummern international (+49…). Nachrichten anderer Nummern lösen nichts aus und erscheinen nur im Log. Leer = alle."
         }
       },
       "custom_url": {
@@ -51,11 +53,13 @@
         "description": "Öffentliche HTTPS-Basisadresse dieser Home-Assistant-Instanz, z. B. https://ha.example.de. Die Integration hängt /api/webhook/ und eine zufällige ID an.",
         "data": {
           "base_url": "Basis-URL",
-          "event_types": "Webhook-Typen"
+          "event_types": "Webhook-Typen",
+          "allowed_senders": "Erlaubte Absender"
         },
         "data_description": {
           "base_url": "Muss aus dem Internet per HTTPS erreichbar sein.",
-          "event_types": "RCS umfasst eingehende RCS-Nachrichten, Button-Antworten, Standorte, Dateien sowie Zustell- und Lesestatus. Eingehende SMS brauchen eine Eingangsnummer bei seven.io."
+          "event_types": "RCS umfasst eingehende RCS-Nachrichten, Button-Antworten, Standorte, Dateien sowie Zustell- und Lesestatus. Eingehende SMS brauchen eine Eingangsnummer bei seven.io.",
+          "allowed_senders": "Rufnummern international (+49…). Nachrichten anderer Nummern lösen nichts aus und erscheinen nur im Log. Leer = alle."
         }
       },
       "reauth_confirm": {
@@ -73,7 +77,8 @@
       "cloud_no_subscription": "Kein aktives Home-Assistant-Cloud-Abo.",
       "no_event_types": "Mindestens einen Webhook-Typ wählen.",
       "url_not_https": "Die URL muss mit https:// beginnen.",
-      "sender_invalid": "Bis 11 Buchstaben/Ziffern oder bis 16 Ziffern."
+      "sender_invalid": "Bis 11 Buchstaben/Ziffern oder bis 16 Ziffern.",
+      "number_not_international": "Bitte Nummern international eingeben, z. B. +491701234567."
     },
     "abort": {
       "already_configured": "Dieser API-Key ist bereits eingerichtet.",
@@ -111,10 +116,12 @@
         "title": "Nabu Casa",
         "description": "Home Assistant Cloud legt für diese Integration eine öffentliche hooks.nabu.casa-Adresse an. Geschützt ist sie durch die lange Zufallsadresse; die Signatur-Header von seven.io reicht Nabu Casa nicht weiter.",
         "data": {
-          "event_types": "Webhook-Typen"
+          "event_types": "Webhook-Typen",
+          "allowed_senders": "Erlaubte Absender"
         },
         "data_description": {
-          "event_types": "RCS umfasst eingehende RCS-Nachrichten, Button-Antworten, Standorte, Dateien sowie Zustell- und Lesestatus. Eingehende SMS brauchen eine Eingangsnummer bei seven.io."
+          "event_types": "RCS umfasst eingehende RCS-Nachrichten, Button-Antworten, Standorte, Dateien sowie Zustell- und Lesestatus. Eingehende SMS brauchen eine Eingangsnummer bei seven.io.",
+          "allowed_senders": "Rufnummern international (+49…). Nachrichten anderer Nummern lösen nichts aus und erscheinen nur im Log. Leer = alle."
         }
       },
       "custom_url": {
@@ -122,11 +129,13 @@
         "description": "Öffentliche HTTPS-Basisadresse dieser Home-Assistant-Instanz, z. B. https://ha.example.de. Die Integration hängt /api/webhook/ und eine zufällige ID an.",
         "data": {
           "base_url": "Basis-URL",
-          "event_types": "Webhook-Typen"
+          "event_types": "Webhook-Typen",
+          "allowed_senders": "Erlaubte Absender"
         },
         "data_description": {
           "base_url": "Muss aus dem Internet per HTTPS erreichbar sein.",
-          "event_types": "RCS umfasst eingehende RCS-Nachrichten, Button-Antworten, Standorte, Dateien sowie Zustell- und Lesestatus. Eingehende SMS brauchen eine Eingangsnummer bei seven.io."
+          "event_types": "RCS umfasst eingehende RCS-Nachrichten, Button-Antworten, Standorte, Dateien sowie Zustell- und Lesestatus. Eingehende SMS brauchen eine Eingangsnummer bei seven.io.",
+          "allowed_senders": "Rufnummern international (+49…). Nachrichten anderer Nummern lösen nichts aus und erscheinen nur im Log. Leer = alle."
         }
       }
     },
@@ -137,7 +146,8 @@
       "cloud_no_subscription": "Kein aktives Home-Assistant-Cloud-Abo.",
       "no_event_types": "Mindestens einen Webhook-Typ wählen.",
       "url_not_https": "Die URL muss mit https:// beginnen.",
-      "sender_invalid": "Bis 11 Buchstaben/Ziffern oder bis 16 Ziffern."
+      "sender_invalid": "Bis 11 Buchstaben/Ziffern oder bis 16 Ziffern.",
+      "number_not_international": "Bitte Nummern international eingeben, z. B. +491701234567."
     }
   },
   "selector": {
@@ -215,6 +225,22 @@
     }
   },
   "entity": {
+    "event": {
+      "nachricht": {
+        "name": "Eingehende Nachricht",
+        "state_attributes": {
+          "event_type": {
+            "state": {
+              "text": "Text",
+              "suggestion_response": "Button angetippt",
+              "location": "Standort",
+              "user_file": "Datei",
+              "other": "Sonstiges"
+            }
+          }
+        }
+      }
+    },
     "sensor": {
       "guthaben": {
         "name": "Guthaben"

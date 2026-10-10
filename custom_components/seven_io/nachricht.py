@@ -141,6 +141,22 @@ def ersatztext(
     return "\n".join(t for t in teile if t)
 
 
+def nummer_normalisieren(nummer: str) -> str | None:
+    """Rufnummer so, wie seven.io Absender meldet: international ohne "+".
+
+    "+49 160 123" / "0049160123" -> "49160123"; nationale Nummern ("0160…") lassen
+    sich ohne Landesvorwahl nicht zuordnen -> None.
+    """
+    ziffern = "".join(z for z in str(nummer) if z.isdigit())
+    if str(nummer).strip().startswith("+"):
+        return ziffern or None
+    if ziffern.startswith("00"):
+        return ziffern[2:] or None
+    if not ziffern or ziffern.startswith("0"):
+        return None
+    return ziffern
+
+
 def empfaenger(eingabe: str | list[str]) -> list[str]:
     """Nummern als Liste; Leerzeichen und Trennzeichen raus, Duplikate weg."""
     if isinstance(eingabe, str):

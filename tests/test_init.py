@@ -170,3 +170,33 @@ async def test_empfang_ueber_cloudhook_mockrequest(hass: HomeAssistant, aioclien
     await hass.async_block_till_done()
     assert antwort.status == 200
     assert [e.data["text"] for e in events] == ["Hallo"]
+
+
+
+async def test_freigabe_und_event_entity(hass: HomeAssistant, aioclient_mock):
+    from homeassistant.components.webhook import async_handle_webhook
+    from homeassistant.util.aiohttp import MockRequest
+
+    _konto(aioclient_mock)
+    entry = _eintrag(hass, signing_secret=None, allowed_senders=["491700000001"])
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    events = []
+    hass.bus.async_listen(EVENT_MESSAGE_RECEIVED, events.append)
+
+    async def _zustellen(sender, postback):
+        body = json.dumps({"webhook_event": "rcs", "data": {
+            "agent_id": "ag1", "content_type": "suggestion_response", "id": 1, "sender": sender,
+            "suggestion_response": {"postbackData": postback, "text": "Zu", "type": "REPLY"}}}).encode()
+        await async_handle_webhook(hass, WID, MockRequest(content=body, mock_source="cloud", method="POST"))
+        await hass.async_block_till_done()
+
+    await _zustellen("491709999999", "fremd")
+    assert events == []
+    assert hass.states.get("event.seven_io_casa_incoming_message").state == "unknown"
+
+    await _zustellen("491700000001", "lock")
+    assert [e.data["postback_data"] for e in events] == ["lock"]
+    zustand = hass.states.get("event.seven_io_casa_incoming_message")
+    assert zustand.attributes["event_type"] == "suggestion_response"
+    assert zustand.attributes["postback_data"] == "lock" and "raw" not in zustand.attributes

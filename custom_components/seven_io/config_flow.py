@@ -34,7 +34,9 @@ from homeassistant.helpers.selector import (
 
 from . import cloudhook
 from .api import SevenApi, SevenAuthError, SevenError
+from .nachricht import nummer_normalisieren
 from .const import (
+    CONF_ALLOWED_SENDERS,
     CONF_BASE_URL,
     CONF_EVENT_TYPES,
     CONF_RCS_AGENT,
@@ -52,6 +54,7 @@ from .const import (
 )
 
 PASSWORT = TextSelector(TextSelectorConfig(type=TextSelectorType.PASSWORD))
+NUMMERN = TextSelector(TextSelectorConfig(type=TextSelectorType.TEL, multiple=True))
 EVENT_AUSWAHL = SelectSelector(
     SelectSelectorConfig(
         options=list(EVENT_TYPES),
@@ -93,6 +96,15 @@ def _einstellungen_schema(agents: list[dict[str, Any]]) -> vol.Schema:
     felder[vol.Optional(CONF_VOICE_SENDER)] = str
     felder[vol.Optional(CONF_SIGNING_SECRET)] = PASSWORT
     return vol.Schema(felder)
+
+
+def _freigaben(eingabe: list[str] | None) -> tuple[list[str], bool]:
+    """Erlaubte Absender normalisieren; zweiter Wert False bei nationaler Nummer."""
+    roh = [x for x in (eingabe or []) if str(x).strip()]
+    nummern = [nummer_normalisieren(x) for x in roh]
+    if None in nummern:
+        return [], False
+    return list(dict.fromkeys(nummern)), True
 
 
 def _absender_gueltig(absender: str) -> bool:
@@ -158,24 +170,31 @@ class _Schritte:
                 errors["base"] = "cloud_not_connected"
             elif not user_input.get(CONF_EVENT_TYPES):
                 errors[CONF_EVENT_TYPES] = "no_event_types"
+            elif not (freigaben := _freigaben(user_input.get(CONF_ALLOWED_SENDERS)))[1]:
+                errors[CONF_ALLOWED_SENDERS] = "number_not_international"
             else:
                 self._optionen.update(
                     {
                         CONF_WEBHOOK_MODE: WEBHOOK_NABU_CASA,
                         CONF_EVENT_TYPES: user_input[CONF_EVENT_TYPES],
+                        CONF_ALLOWED_SENDERS: freigaben[0],
                         CONF_BASE_URL: None,
                     }
                 )
                 return await self._fertig()
+        schema = vol.Schema(
+            {
+                vol.Required(
+                    CONF_EVENT_TYPES,
+                    default=self._optionen.get(CONF_EVENT_TYPES) or DEFAULT_EVENT_TYPES,
+                ): EVENT_AUSWAHL,
+                vol.Optional(CONF_ALLOWED_SENDERS): NUMMERN,
+            }
+        )
         return self.async_show_form(
             step_id="nabu_casa",
-            data_schema=vol.Schema(
-                {
-                    vol.Required(
-                        CONF_EVENT_TYPES,
-                        default=self._optionen.get(CONF_EVENT_TYPES) or DEFAULT_EVENT_TYPES,
-                    ): EVENT_AUSWAHL
-                }
+            data_schema=self.add_suggested_values_to_schema(
+                schema, {**self._optionen, **(user_input or {})}
             ),
             errors=errors,
         )
@@ -190,11 +209,14 @@ class _Schritte:
                 errors[CONF_BASE_URL] = "url_not_https"
             elif not user_input.get(CONF_EVENT_TYPES):
                 errors[CONF_EVENT_TYPES] = "no_event_types"
+            elif not (freigaben := _freigaben(user_input.get(CONF_ALLOWED_SENDERS)))[1]:
+                errors[CONF_ALLOWED_SENDERS] = "number_not_international"
             else:
                 self._optionen.update(
                     {
                         CONF_WEBHOOK_MODE: WEBHOOK_CUSTOM_URL,
                         CONF_EVENT_TYPES: user_input[CONF_EVENT_TYPES],
+                        CONF_ALLOWED_SENDERS: freigaben[0],
                         CONF_BASE_URL: url,
                     }
                 )
@@ -209,15 +231,27 @@ class _Schritte:
                     CONF_EVENT_TYPES,
                     default=self._optionen.get(CONF_EVENT_TYPES) or DEFAULT_EVENT_TYPES,
                 ): EVENT_AUSWAHL,
+                vol.Optional(CONF_ALLOWED_SENDERS): NUMMERN,
             }
         )
-        return self.async_show_form(step_id="custom_url", data_schema=schema, errors=errors)
+        return self.async_show_form(
+            step_id="custom_url",
+            data_schema=self.add_suggested_values_to_schema(
+                schema, {**self._optionen, **(user_input or {})}
+            ),
+            errors=errors,
+        )
 
     async def async_step_none(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         self._optionen.update(
-            {CONF_WEBHOOK_MODE: WEBHOOK_NONE, CONF_EVENT_TYPES: [], CONF_BASE_URL: None}
+            {
+                CONF_WEBHOOK_MODE: WEBHOOK_NONE,
+                CONF_EVENT_TYPES: [],
+                CONF_ALLOWED_SENDERS: [],
+                CONF_BASE_URL: None,
+            }
         )
         return await self._fertig()
 

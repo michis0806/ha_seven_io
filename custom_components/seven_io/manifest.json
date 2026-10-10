@@ -16,5 +16,5 @@
   "iot_class": "cloud_push",
   "issue_tracker": "https://github.com/michis0806/ha_seven_io/issues",
   "requirements": [],
-  "version": "0.2.0"
+  "version": "0.3.0"
 }

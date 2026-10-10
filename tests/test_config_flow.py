@@ -40,9 +40,15 @@ async def test_eigene_url(hass, aioclient_mock):
         result["flow_id"], {"base_url": "http://ha.example.de", "event_types": ["rcs"]}
     )
     assert result["errors"] == {"base_url": "url_not_https"}
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {"base_url": "https://ha.example.de", "event_types": ["rcs"],
+                            "allowed_senders": ["0170 1234567"]}
+    )
+    assert result["errors"] == {"allowed_senders": "number_not_international"}
     with patch("custom_components.seven_io.async_setup_entry", return_value=True):
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], {"base_url": "https://ha.example.de/", "event_types": ["rcs", "dlr"]}
+            result["flow_id"], {"base_url": "https://ha.example.de/", "event_types": ["rcs", "dlr"],
+                                "allowed_senders": ["+49 170 1234567", "00491701234567"]}
         )
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert result["title"] == "seven.io Casa"
@@ -50,6 +56,7 @@ async def test_eigene_url(hass, aioclient_mock):
     assert result["options"] == {
         "rcs_agent": "ag1", "sms_sender": "CasaSchmid", "voice_sender": None, "signing_secret": "s",
         "webhook_mode": "custom_url", "event_types": ["rcs", "dlr"], "base_url": "https://ha.example.de",
+        "allowed_senders": ["491701234567"],
     }
 
 

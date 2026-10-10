@@ -5,6 +5,7 @@ from custom_components.seven_io.nachricht import (
     NachrichtFehler,
     button,
     empfaenger,
+    nummer_normalisieren,
     ersatztext,
     rcs_inhalt,
 )
@@ -51,3 +52,11 @@ def test_ersatztext_und_empfaenger():
     assert empfaenger(["49170", "49170"]) == ["49170"]
     with pytest.raises(NachrichtFehler):
         empfaenger(" ")
+
+
+def test_nummer_normalisieren():
+    assert nummer_normalisieren("+49 160 5336260") == "491605336260"
+    assert nummer_normalisieren("0049-160-5336260") == "491605336260"
+    assert nummer_normalisieren("491605336260") == "491605336260"
+    assert nummer_normalisieren("0160 5336260") is None
+    assert nummer_normalisieren("") is None

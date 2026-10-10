@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.0
+
+- Option „Erlaubte Absender“ (im Webhook-Schritt): Nachrichten anderer Nummern lösen
+  weder Event noch Event-Entity aus und erscheinen nur im Log. Nummern werden
+  international erwartet (+49…, 0049…), nationale Schreibweise wird abgelehnt.
+- Event-Entity „Eingehende Nachricht“ als Auslöser im Automationseditor; Event-Typ
+  ist der Inhaltstyp (Text, Button angetippt, Standort, Datei).
+
 ## 0.2.0
 
 - Aktion `seven_io.send_message`: RCS über den gewählten Agent mit SMS als Ersatz

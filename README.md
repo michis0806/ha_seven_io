@@ -9,9 +9,8 @@ files, read receipts) and your **account balance**.
 
 [Deutsche Beschreibung weiter unten.](#deutsch)
 
-> **Status 0.2:** sending (RCS with SMS fallback, SMS, voice calls), incoming
-> messages and sensors work. Contacts with their own `notify` entities follow — see
-> [Roadmap](#roadmap).
+> **Status 0.3:** sending (RCS with SMS fallback, SMS, voice calls), incoming
+> messages with a sender allow list and an event entity, and sensors work.
 
 ## Why
 
@@ -37,6 +36,7 @@ cannot show it.
 |---|---|
 | Balance | Account balance in the account currency, polled every 30 minutes |
 | RCS agent | Status of the selected agent; attributes agent ID, display name, generic, created, logo. Polled every 6 hours |
+| Incoming message (event) | Fires for every accepted incoming message; event type `text`, `suggestion_response`, `location`, `user_file` or `other`, attributes as in the bus event below (without `raw`). Only with webhooks enabled |
 | Last webhook (diagnostic) | Time of the last accepted webhook delivery; attributes count, last event type, mode, webhook types. Only with webhooks enabled |
 
 All entities belong to one service device per seven.io account.
@@ -98,6 +98,11 @@ their IDs. It only ever deletes these — webhooks you already use in the same
 account are never touched. Removing the integration removes its webhooks and the
 cloudhook.
 
+**Allowed senders (optional):** phone numbers in international format. Messages
+from any other number trigger nothing — no event, no event entity — and only show
+up in the log. Empty = everybody. Set this as soon as a message can do something
+security relevant.
+
 **Signing secret (optional):** with the signing key from the seven.io dashboard
 (Developer → Settings) every delivery to your **own URL** is checked: HMAC-SHA256
 signature, timestamp at most 5 minutes off and every nonce accepted only once.
@@ -143,17 +148,18 @@ triggers:
     event_data:
       content_type: suggestion_response
       postback_data: lock_front_door
-conditions:
-  - condition: template
-    value_template: "{{ trigger.event.data.sender == '491701234567' }}"
 actions:
   - action: lock.lock
     target:
       entity_id: lock.front_door
 ```
 
-Always check the sender as in the example before anything security relevant —
-contacts will take care of that in a later version.
+With **allowed senders** set, only those numbers get this far. Without the allow
+list, check `trigger.event.data.sender` (e.g. `491701234567`) in a condition.
+
+In the automation editor you can instead pick the *Incoming message* event entity
+as a trigger (state trigger on `event.…_incoming_message`, attribute `event_type`
+or `postback_data`).
 
 ## Installation
 
@@ -182,15 +188,13 @@ Settings → Devices & services → *Add integration* → **seven.io**
    list shows each agent's status. SMS sender: up to 11 letters/digits or up to 16
    digits. All optional.
 3. **Incoming messages** — Nabu Casa, own URL or none, plus the webhook types
-   (RCS, incoming SMS, SMS delivery reports).
+   (RCS, incoming SMS, SMS delivery reports) and the allowed senders.
 
 All of this except the API key can be changed later in the options. A rejected API
 key starts a re-authentication (Settings → Repairs).
 
 ## Roadmap
 
-- **Contacts** (name, number, default channel) with their own `notify` and event
-  entities and a sender allow list for triggers.
 - RCS capability lookup per contact, sending "read"/"typing", revoking
   undelivered messages, blueprint for questions with buttons.
 
@@ -214,8 +218,8 @@ their brand. Use at your own risk; messages cost money.
 Home-Assistant-Integration für [seven.io](https://www.seven.io): **RCS und SMS**,
 **eingehende RCS-Nachrichten als Auslöser für Automationen** und das **Guthaben**.
 
-- **Stand 0.2:** Senden (RCS mit SMS als Ersatz, SMS, Sprachanruf), eingehende
-  Nachrichten und Sensoren. Kontakte mit eigenen `notify`-Entities folgen.
+- **Stand 0.3:** Senden (RCS mit SMS als Ersatz, SMS, Sprachanruf), eingehende
+  Nachrichten mit Absender-Freigabe und Event-Entity, Sensoren.
 - **Warum:** Die Integration von seven.io selbst ist eine YAML-`notify`-Plattform
   für SMS und Anrufe — ohne RCS, ohne Empfang, ohne Guthaben.
 - **RCS im Testbetrieb:** Ein Agent erreicht dann nur die Nummern, die du im
@@ -238,6 +242,12 @@ Home-Assistant-Integration für [seven.io](https://www.seven.io): **RCS und SMS*
   ergeben eine Rich Card — Buttons unter reinem Text rechnet seven.io als zweite
   Nachricht ab. Die Antwort liefert je Empfänger Message-ID, Kanal und Preis; das
   Guthaben wird aus jeder Versand-Antwort nachgezogen.
+- **Erlaubte Absender (optional):** Rufnummern international (+49…). Nachrichten
+  anderer Nummern lösen nichts aus — kein Event, keine Event-Entity — und stehen nur
+  im Log. Leer = alle. Setzen, sobald eine Nachricht etwas Sicherheitsrelevantes
+  auslösen kann.
+- **Event-Entity „Eingehende Nachricht“:** Auslöser im Automationseditor; Event-Typ
+  Text, Button angetippt, Standort, Datei; Attribute wie beim Bus-Event ohne `raw`.
 - **Signierschlüssel (optional):** Damit wird jede Zustellung an eine **eigene URL**
   geprüft (HMAC-SHA256, Zeitstempel höchstens 5 Minuten daneben, jede Nonce nur
   einmal). Der **Nabu-Casa-Cloudhook reicht die Signatur-Header nicht weiter**; dort
@@ -250,6 +260,5 @@ Home-Assistant-Integration für [seven.io](https://www.seven.io): **RCS und SMS*
   ohne Nummer — zugeordnet wird über die Message-ID aus der Versand-Antwort.
 - **Entities:** Guthaben (alle 30 Minuten), RCS-Agent (alle 6 Stunden), Letzter
   Webhook (Diagnose).
-- **Fahrplan:** Kontakte mit eigenen `notify`- und Event-Entities und Absender-
-  Freigabe für Auslöser; RCS-Fähigkeitsprüfung je Kontakt, „gelesen“/„schreibt“
+- **Fahrplan:** RCS-Fähigkeitsprüfung je Kontakt, „gelesen“/„schreibt“
   senden, Zurückziehen und ein Blueprint für Fragen mit Buttons.

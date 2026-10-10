@@ -40,10 +40,12 @@
         "title": "Nabu Casa",
         "description": "Home Assistant Cloud creates a public hooks.nabu.casa address for this integration. The long random address is the protection here; Nabu Casa does not pass on seven.io's signature headers.",
         "data": {
-          "event_types": "Webhook types"
+          "event_types": "Webhook types",
+          "allowed_senders": "Allowed senders"
         },
         "data_description": {
-          "event_types": "RCS covers incoming RCS messages, button replies, locations, files and read/delivery status. Incoming SMS needs an inbound number at seven.io."
+          "event_types": "RCS covers incoming RCS messages, button replies, locations, files and read/delivery status. Incoming SMS needs an inbound number at seven.io.",
+          "allowed_senders": "Phone numbers in international format (+49…). Messages from other numbers do not trigger anything and only show up in the log. Empty = everybody."
         }
       },
       "custom_url": {
@@ -51,11 +53,13 @@
         "description": "Public HTTPS base address of this Home Assistant instance, e.g. https://ha.example.com. The integration appends /api/webhook/ plus a random ID.",
         "data": {
           "base_url": "Base URL",
-          "event_types": "Webhook types"
+          "event_types": "Webhook types",
+          "allowed_senders": "Allowed senders"
         },
         "data_description": {
           "base_url": "Must be reachable from the internet via HTTPS.",
-          "event_types": "RCS covers incoming RCS messages, button replies, locations, files and read/delivery status. Incoming SMS needs an inbound number at seven.io."
+          "event_types": "RCS covers incoming RCS messages, button replies, locations, files and read/delivery status. Incoming SMS needs an inbound number at seven.io.",
+          "allowed_senders": "Phone numbers in international format (+49…). Messages from other numbers do not trigger anything and only show up in the log. Empty = everybody."
         }
       },
       "reauth_confirm": {
@@ -73,7 +77,8 @@
       "cloud_no_subscription": "No active Home Assistant Cloud subscription.",
       "no_event_types": "Choose at least one webhook type.",
       "url_not_https": "The URL must start with https://.",
-      "sender_invalid": "Up to 11 letters/digits or up to 16 digits."
+      "sender_invalid": "Up to 11 letters/digits or up to 16 digits.",
+      "number_not_international": "Please enter numbers in international format, e.g. +491701234567."
     },
     "abort": {
       "already_configured": "This API key is already set up.",
@@ -111,10 +116,12 @@
         "title": "Nabu Casa",
         "description": "Home Assistant Cloud creates a public hooks.nabu.casa address for this integration. The long random address is the protection here; Nabu Casa does not pass on seven.io's signature headers.",
         "data": {
-          "event_types": "Webhook types"
+          "event_types": "Webhook types",
+          "allowed_senders": "Allowed senders"
         },
         "data_description": {
-          "event_types": "RCS covers incoming RCS messages, button replies, locations, files and read/delivery status. Incoming SMS needs an inbound number at seven.io."
+          "event_types": "RCS covers incoming RCS messages, button replies, locations, files and read/delivery status. Incoming SMS needs an inbound number at seven.io.",
+          "allowed_senders": "Phone numbers in international format (+49…). Messages from other numbers do not trigger anything and only show up in the log. Empty = everybody."
         }
       },
       "custom_url": {
@@ -122,11 +129,13 @@
         "description": "Public HTTPS base address of this Home Assistant instance, e.g. https://ha.example.com. The integration appends /api/webhook/ plus a random ID.",
         "data": {
           "base_url": "Base URL",
-          "event_types": "Webhook types"
+          "event_types": "Webhook types",
+          "allowed_senders": "Allowed senders"
         },
         "data_description": {
           "base_url": "Must be reachable from the internet via HTTPS.",
-          "event_types": "RCS covers incoming RCS messages, button replies, locations, files and read/delivery status. Incoming SMS needs an inbound number at seven.io."
+          "event_types": "RCS covers incoming RCS messages, button replies, locations, files and read/delivery status. Incoming SMS needs an inbound number at seven.io.",
+          "allowed_senders": "Phone numbers in international format (+49…). Messages from other numbers do not trigger anything and only show up in the log. Empty = everybody."
         }
       }
     },
@@ -137,7 +146,8 @@
       "cloud_no_subscription": "No active Home Assistant Cloud subscription.",
       "no_event_types": "Choose at least one webhook type.",
       "url_not_https": "The URL must start with https://.",
-      "sender_invalid": "Up to 11 letters/digits or up to 16 digits."
+      "sender_invalid": "Up to 11 letters/digits or up to 16 digits.",
+      "number_not_international": "Please enter numbers in international format, e.g. +491701234567."
     }
   },
   "selector": {
@@ -215,6 +225,22 @@
     }
   },
   "entity": {
+    "event": {
+      "nachricht": {
+        "name": "Incoming message",
+        "state_attributes": {
+          "event_type": {
+            "state": {
+              "text": "Text",
+              "suggestion_response": "Button tapped",
+              "location": "Location",
+              "user_file": "File",
+              "other": "Other"
+            }
+          }
+        }
+      }
+    },
     "sensor": {
       "guthaben": {
         "name": "Balance"

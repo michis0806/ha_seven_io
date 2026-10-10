@@ -13,6 +13,7 @@ CONF_WEBHOOK_ID = "webhook_id"
 CONF_WEBHOOK_MODE = "webhook_mode"
 CONF_BASE_URL = "base_url"
 CONF_EVENT_TYPES = "event_types"
+CONF_ALLOWED_SENDERS = "allowed_senders"
 
 # Versandkanäle der Aktion send_message; auto = RCS mit SMS-Fallback
 CHANNEL_AUTO = "auto"
@@ -47,6 +48,11 @@ EVENT_AGENT_STATUS_CHANGED = f"{DOMAIN}_agent_status_changed"
 
 # Dispatcher-Signal nach jeder angenommenen Webhook-Zustellung (Argument: entry_id)
 SIGNAL_WEBHOOK = f"{DOMAIN}_webhook"
+# Dispatcher-Signal je eingehender Nachricht (Argumente: entry_id, Eventdaten)
+SIGNAL_NACHRICHT = f"{DOMAIN}_nachricht"
+
+# Event-Typen der Event-Entity "Eingehende Nachricht" (= content_type der Nachricht)
+NACHRICHT_TYPEN = ["text", "suggestion_response", "location", "user_file", "other"]
 
 # Status eigener Agents (test/pending/launched) und generischer seven-Agents
 # (wait/approved/denied) laut seven-io/js-client, src/resources/agents/types.ts

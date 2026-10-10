@@ -36,7 +36,9 @@ from homeassistant.helpers.dispatcher import async_dispatcher_send
 
 from . import cloudhook
 from .api import SevenApi
+from .nachricht import nummer_normalisieren
 from .const import (
+    CONF_ALLOWED_SENDERS,
     CONF_BASE_URL,
     CONF_EVENT_TYPES,
     CONF_SIGNING_SECRET,
@@ -46,6 +48,7 @@ from .const import (
     DOMAIN,
     EVENT_MESSAGE_RECEIVED,
     EVENT_MESSAGE_STATUS,
+    SIGNAL_NACHRICHT,
     SIGNAL_WEBHOOK,
     SIGNATURE_MAX_AGE,
     WEBHOOK_CUSTOM_URL,
@@ -209,6 +212,11 @@ def empfang_registrieren(hass: HomeAssistant, entry: ConfigEntry, ziel_url: str)
             "weiter — Webhooks werden über den Cloudhook ohne Signaturprüfung angenommen"
         )
         geheimnis = None
+    # Leere Liste = alle Absender erlaubt
+    erlaubt = {
+        n for n in (nummer_normalisieren(x) for x in entry.options.get(CONF_ALLOWED_SENDERS) or [])
+        if n
+    }
 
     async def _handler(hass: HomeAssistant, _id: str, request: web.Request) -> web.Response:
         # Über den Nabu-Casa-Cloudhook kommt ein MockRequest ohne read(); text()
@@ -232,7 +240,15 @@ def empfang_registrieren(hass: HomeAssistant, entry: ConfigEntry, ziel_url: str)
             _LOGGER.info("Unbekannter Webhook von seven.io ignoriert: %s", str(nutzlast)[:500])
             return web.Response(status=200)
         typ, event, eventdaten = ergebnis
-        hass.bus.async_fire(event, {"config_entry_id": entry.entry_id, **eventdaten})
+        nachricht = event == EVENT_MESSAGE_RECEIVED
+        if nachricht and erlaubt and nummer_normalisieren(eventdaten.get("sender") or "") not in erlaubt:
+            _LOGGER.info(
+                "Nachricht von nicht freigegebener Nummer %s ignoriert", eventdaten.get("sender")
+            )
+        else:
+            hass.bus.async_fire(event, {"config_entry_id": entry.entry_id, **eventdaten})
+            if nachricht:
+                async_dispatcher_send(hass, SIGNAL_NACHRICHT, entry.entry_id, eventdaten)
         status = entry.runtime_data["webhook"]
         status["letzter"] = datetime.now(UTC)
         status["anzahl"] += 1
