@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.2.0
+
+- Aktion `seven_io.send_message`: RCS über den gewählten Agent mit SMS als Ersatz
+  (`auto`), nur RCS, SMS oder Sprachanruf; Titel, Bild, Buttons (Kurzform oder
+  Objekte) oder ein vollständiges RCS-Objekt. Bis zu vier Buttons, Titel oder Bild
+  werden zur Rich Card (eine statt zwei abgerechnete Nachrichten). Antwort mit
+  Message-ID, Kanal, Preis und Ersatz-SMS je Empfänger; Guthaben-Sensor wird aus der
+  Versand-Antwort nachgezogen.
+- Neue Option „Absendernummer für Sprachanrufe“.
+- Über den Nabu-Casa-Cloudhook wird nicht mehr signaturgeprüft: Nabu Casa reicht die
+  Signatur-Header nicht weiter, mit gesetztem Schlüssel wäre sonst jede Zustellung
+  abgelehnt worden.
+- Echte Webhook-Formate (Status, Button-Antwort) als Tests übernommen; RCS-Webhooks
+  kommen verschachtelt (`webhook_event`/`data`), Absender ohne `+`.
+
 ## 0.1.1
 
 - Fix: Webhooks über den Nabu-Casa-Cloudhook liefen auf einen Fehler (`MockRequest`

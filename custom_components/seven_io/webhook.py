@@ -6,6 +6,9 @@ seven.io selbst an und merkt sich deren IDs in ``.storage/seven_io.<entry_id>``.
 Gelöscht werden nur Webhooks, die sie selbst angelegt hat — fremde Webhooks im
 selben Konto bleiben unberührt.
 
+Über den Nabu-Casa-Cloudhook kommen die Signatur-Header nicht an; geprüft wird
+nur bei eigener URL.
+
 Signatur laut https://docs.seven.io/en/rest-api/signing (und WebhookVerifier.ts
 im offiziellen JS-Client): HMAC-SHA256 mit dem Signing Secret über
 ``Timestamp \\n Nonce \\n Methode \\n Ziel-URL \\n MD5(Body)``. Ziel-URL ist die bei
@@ -197,6 +200,15 @@ def _lesen(body: bytes) -> Any:
 def empfang_registrieren(hass: HomeAssistant, entry: ConfigEntry, ziel_url: str) -> None:
     webhook_id = entry.data[CONF_WEBHOOK_ID]
     nonces: dict[str, float] = {}
+    geheimnis = entry.options.get(CONF_SIGNING_SECRET)
+    if geheimnis and entry.options.get(CONF_WEBHOOK_MODE) == WEBHOOK_NABU_CASA:
+        # Der Cloudhook reicht nur eigene x-forwarded-*-Header durch, X-Signature &
+        # Co. kommen nie an (gemessen am 10.10.2026). Prüfen hieße alles ablehnen.
+        _LOGGER.warning(
+            "Signierschlüssel gesetzt, aber Nabu Casa leitet die Signatur-Header nicht "
+            "weiter — Webhooks werden über den Cloudhook ohne Signaturprüfung angenommen"
+        )
+        geheimnis = None
 
     async def _handler(hass: HomeAssistant, _id: str, request: web.Request) -> web.Response:
         # Über den Nabu-Casa-Cloudhook kommt ein MockRequest ohne read(); text()
@@ -206,7 +218,6 @@ def empfang_registrieren(hass: HomeAssistant, entry: ConfigEntry, ziel_url: str)
             "Webhook-Header: %s",
             {k: v for k, v in request.headers.items() if k.lower().startswith("x-")},
         )
-        geheimnis = entry.options.get(CONF_SIGNING_SECRET)
         if geheimnis:
             grund = signatur_pruefen(
                 geheimnis, dict(request.headers), body, request.method, ziel_url, nonces

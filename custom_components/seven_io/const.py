@@ -7,11 +7,19 @@ API_TIMEOUT = 15  # Sekunden
 
 CONF_RCS_AGENT = "rcs_agent"
 CONF_SMS_SENDER = "sms_sender"
+CONF_VOICE_SENDER = "voice_sender"
 CONF_SIGNING_SECRET = "signing_secret"
 CONF_WEBHOOK_ID = "webhook_id"
 CONF_WEBHOOK_MODE = "webhook_mode"
 CONF_BASE_URL = "base_url"
 CONF_EVENT_TYPES = "event_types"
+
+# Versandkanäle der Aktion send_message; auto = RCS mit SMS-Fallback
+CHANNEL_AUTO = "auto"
+CHANNEL_RCS = "rcs"
+CHANNEL_SMS = "sms"
+CHANNEL_VOICE = "voice"
+CHANNELS = (CHANNEL_AUTO, CHANNEL_RCS, CHANNEL_SMS, CHANNEL_VOICE)
 
 # Wie seven.io die Instanz für eingehende Nachrichten erreicht
 WEBHOOK_NABU_CASA = "nabu_casa"

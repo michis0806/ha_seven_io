@@ -1,0 +1,69 @@
+send_message:
+  fields:
+    to:
+      required: true
+      example: "+491701234567"
+      selector:
+        text:
+          multiple: true
+    message:
+      required: true
+      example: "Die Haustür ist seit 10 Minuten offen."
+      selector:
+        text:
+          multiline: true
+    channel:
+      required: false
+      default: auto
+      selector:
+        select:
+          translation_key: channel
+          options:
+            - auto
+            - rcs
+            - sms
+            - voice
+    title:
+      required: false
+      example: "Haustür"
+      selector:
+        text:
+    image_url:
+      required: false
+      example: "https://example.com/snapshot.jpg"
+      selector:
+        text:
+          type: url
+    buttons:
+      required: false
+      example: '["Zusperren", "Ignorieren"]'
+      selector:
+        object:
+    config_entry_id:
+      required: false
+      selector:
+        config_entry:
+          integration: seven_io
+    advanced:
+      collapsed: true
+      fields:
+        rcs_object:
+          required: false
+          selector:
+            object:
+        ttl:
+          required: false
+          selector:
+            number:
+              min: 1
+              max: 2880
+              unit_of_measurement: min
+              mode: box
+        label:
+          required: false
+          selector:
+            text:
+        foreign_id:
+          required: false
+          selector:
+            text:

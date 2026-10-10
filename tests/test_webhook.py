@@ -73,3 +73,24 @@ def test_sms_und_dlr_und_unbekannt():
     assert auswerten({"webhook_event": "voice_call", "data": {}}) is None
     assert auswerten({"foo": 1}) is None
     assert auswerten("900") is None
+
+
+def test_echte_formate_vom_10_10_2026():
+    """Mitschnitt über den Nabu-Casa-Cloudhook (Nummer geändert)."""
+    _, event, status = auswerten({"webhook_event": "rcs", "webhook_timestamp": "2026-10-10T12:53:59+02:00",
+                                  "data": {"msg_id": "77320595951", "status": "READ",
+                                           "timestamp": "1791629639.456460", "foreign_id": None,
+                                           "agent_id": "casaschmid_129399fC"}})
+    assert event == EVENT_MESSAGE_STATUS
+    assert (status["message_id"], status["status"], status["number"]) == ("77320595951", "READ", None)
+
+    _, event, antwort = auswerten({"webhook_event": "rcs", "webhook_timestamp": "2026-10-10T12:54:02+02:00",
+                                   "data": {
+        "id": 5404397, "sender": "491700000000", "time": 1791629642,
+        "text": '{"type":"suggestion_response","suggestion_response":{"postbackData":"test_ok",'
+                '"text":"Passt","type":"REPLY"}}',
+        "message_type": "RCS", "system": "casaschmid_129399fC", "content_type": "suggestion_response",
+        "suggestion_response": {"postbackData": "test_ok", "text": "Passt", "type": "REPLY"},
+        "agent_id": "casaschmid_129399fC"}})
+    assert event == EVENT_MESSAGE_RECEIVED
+    assert (antwort["sender"], antwort["text"], antwort["postback_data"]) == ("491700000000", "Passt", "test_ok")

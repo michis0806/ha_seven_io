@@ -40,6 +40,7 @@ from .const import (
     CONF_RCS_AGENT,
     CONF_SIGNING_SECRET,
     CONF_SMS_SENDER,
+    CONF_VOICE_SENDER,
     CONF_WEBHOOK_ID,
     CONF_WEBHOOK_MODE,
     DEFAULT_EVENT_TYPES,
@@ -89,6 +90,7 @@ def _einstellungen_schema(agents: list[dict[str, Any]]) -> vol.Schema:
             )
         )
     felder[vol.Optional(CONF_SMS_SENDER)] = str
+    felder[vol.Optional(CONF_VOICE_SENDER)] = str
     felder[vol.Optional(CONF_SIGNING_SECRET)] = PASSWORT
     return vol.Schema(felder)
 
@@ -117,7 +119,7 @@ class _Schritte:
         if user_input is not None:
             werte = {
                 key: (user_input.get(key) or "").strip() or None
-                for key in (CONF_RCS_AGENT, CONF_SMS_SENDER, CONF_SIGNING_SECRET)
+                for key in (CONF_RCS_AGENT, CONF_SMS_SENDER, CONF_VOICE_SENDER, CONF_SIGNING_SECRET)
             }
             if werte[CONF_SMS_SENDER] and not _absender_gueltig(werte[CONF_SMS_SENDER]):
                 errors[CONF_SMS_SENDER] = "sender_invalid"

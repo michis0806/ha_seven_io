@@ -48,7 +48,7 @@ async def test_eigene_url(hass, aioclient_mock):
     assert result["title"] == "seven.io Casa"
     assert result["data"]["api_key"] == "key" and len(result["data"]["webhook_id"]) == 64
     assert result["options"] == {
-        "rcs_agent": "ag1", "sms_sender": "CasaSchmid", "signing_secret": "s",
+        "rcs_agent": "ag1", "sms_sender": "CasaSchmid", "voice_sender": None, "signing_secret": "s",
         "webhook_mode": "custom_url", "event_types": ["rcs", "dlr"], "base_url": "https://ha.example.de",
     }
 

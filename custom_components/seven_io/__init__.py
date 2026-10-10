@@ -1,8 +1,8 @@
 """seven.io — SMS und RCS über seven.io, eingehende RCS-Nachrichten als Events.
 
-Stand 0.1: Einrichtung mit API-Key und Webhook (Nabu Casa, eigene URL oder
-keiner), Guthaben und RCS-Agent-Status als Sensoren, eingehende Nachrichten und
-Statusmeldungen als Events. Senden folgt in der nächsten Version.
+Einrichtung mit API-Key und Webhook (Nabu Casa, eigene URL oder keiner),
+Guthaben und RCS-Agent-Status als Sensoren, eingehende Nachrichten und
+Statusmeldungen als Events, Versand über die Aktion seven_io.send_message.
 """
 from __future__ import annotations
 
@@ -14,12 +14,15 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_API_KEY
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.storage import Store
+from homeassistant.helpers.typing import ConfigType
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from . import cloudhook, webhook as wh
+from .services import async_setup_services
 from .api import SevenApi, SevenAuthError, SevenError
 from .const import (
     AGENTS_INTERVAL,
@@ -33,6 +36,13 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 PLATFORMS = ["sensor"]
+
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
+
+
+async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
+    async_setup_services(hass)
+    return True
 
 
 def _speicher(hass: HomeAssistant, entry: ConfigEntry) -> Store[dict[str, Any]]:

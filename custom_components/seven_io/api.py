@@ -40,7 +40,13 @@ class SevenApi:
         self._api_key = api_key
 
     async def _anfrage(
-        self, methode: str, pfad: str, *, params: dict | None = None, daten: dict | None = None
+        self,
+        methode: str,
+        pfad: str,
+        *,
+        params: dict | None = None,
+        daten: dict | None = None,
+        json_daten: dict | None = None,
     ) -> Any:
         try:
             async with self._session.request(
@@ -48,6 +54,7 @@ class SevenApi:
                 API_BASE + pfad,
                 params=params,
                 data=daten,
+                json=json_daten,
                 headers={
                     "X-Api-Key": self._api_key,
                     "Accept": "application/json",
@@ -118,3 +125,33 @@ class SevenApi:
         inhalt = await self._anfrage("DELETE", "hooks", daten={"id": hook_id})
         if isinstance(inhalt, dict) and not _ok(inhalt.get("success")):
             raise SevenError(f"Webhook {hook_id} nicht gelöscht: {inhalt}")
+
+    # ------------------------------------------------------------ Senden
+    #
+    # Antwort aller drei Endpunkte: {"success": "100", "total_price": ..., "balance": ...,
+    # "messages": [{"id", "recipient", "price", "success", "error", "error_text", ...}]}
+
+    async def rcs_senden(self, nutzlast: dict[str, Any]) -> dict[str, Any]:
+        """POST /rcs/messages als JSON; ``text`` ist Text oder ein RCS-Objekt."""
+        return self._antwort(await self._anfrage("POST", "rcs/messages", json_daten=nutzlast))
+
+    async def sms_senden(self, nutzlast: dict[str, Any]) -> dict[str, Any]:
+        return self._antwort(await self._anfrage("POST", "sms", json_daten=nutzlast))
+
+    async def anruf(self, nutzlast: dict[str, Any]) -> dict[str, Any]:
+        """Text-to-Speech-Anruf (POST /voice)."""
+        return self._antwort(await self._anfrage("POST", "voice", json_daten=nutzlast))
+
+    @staticmethod
+    def _antwort(inhalt: Any) -> dict[str, Any]:
+        if isinstance(inhalt, dict) and isinstance(inhalt.get("messages"), list):
+            return inhalt
+        if isinstance(inhalt, dict) and _ok(inhalt.get("success")):
+            # Erfolg ohne Einzelaufstellung
+            return {**inhalt, "messages": []}
+        if isinstance(inhalt, dict):
+            fehler = inhalt.get("error_message") or inhalt.get("success") or inhalt
+        else:
+            # Nackter Statuscode, z. B. "201" (Absender ungültig) oder "202" (Empfänger ungültig)
+            fehler = f"Code {inhalt}"
+        raise SevenError(f"seven.io hat den Versand abgelehnt: {fehler}")

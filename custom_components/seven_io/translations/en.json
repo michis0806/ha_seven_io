@@ -17,12 +17,14 @@
         "data": {
           "rcs_agent": "RCS agent",
           "sms_sender": "SMS sender",
+          "voice_sender": "Caller ID for voice calls",
           "signing_secret": "Signing secret"
         },
         "data_description": {
           "rcs_agent": "Sender for RCS messages. Status in brackets: test, pending or launched (generic seven agents: wait, approved or denied).",
           "sms_sender": "Up to 11 letters/digits or up to 16 digits. Empty = seven.io default.",
-          "signing_secret": "From the seven.io dashboard (Developer → API settings). With it, every incoming webhook is checked for a valid signature. Strongly recommended as soon as messages trigger automations."
+          "voice_sender": "A number verified at seven.io (inbound or shared number). Empty = seven.io default.",
+          "signing_secret": "From the seven.io dashboard (Developer → API settings). With it, every incoming webhook is checked for a valid signature. Only works with your own URL: the Nabu Casa cloudhook does not pass the signature headers on. Optional."
         }
       },
       "webhook": {
@@ -36,7 +38,7 @@
       },
       "nabu_casa": {
         "title": "Nabu Casa",
-        "description": "Home Assistant Cloud creates a public hooks.nabu.casa address for this integration.",
+        "description": "Home Assistant Cloud creates a public hooks.nabu.casa address for this integration. The long random address is the protection here; Nabu Casa does not pass on seven.io's signature headers.",
         "data": {
           "event_types": "Webhook types"
         },
@@ -86,12 +88,14 @@
         "data": {
           "rcs_agent": "RCS agent",
           "sms_sender": "SMS sender",
+          "voice_sender": "Caller ID for voice calls",
           "signing_secret": "Signing secret"
         },
         "data_description": {
           "rcs_agent": "Sender for RCS messages. Status in brackets: test, pending or launched (generic seven agents: wait, approved or denied).",
           "sms_sender": "Up to 11 letters/digits or up to 16 digits. Empty = seven.io default.",
-          "signing_secret": "From the seven.io dashboard (Developer → API settings). With it, every incoming webhook is checked for a valid signature. Strongly recommended as soon as messages trigger automations."
+          "voice_sender": "A number verified at seven.io (inbound or shared number). Empty = seven.io default.",
+          "signing_secret": "From the seven.io dashboard (Developer → API settings). With it, every incoming webhook is checked for a valid signature. Only works with your own URL: the Nabu Casa cloudhook does not pass the signature headers on. Optional."
         }
       },
       "webhook": {
@@ -105,7 +109,7 @@
       },
       "nabu_casa": {
         "title": "Nabu Casa",
-        "description": "Home Assistant Cloud creates a public hooks.nabu.casa address for this integration.",
+        "description": "Home Assistant Cloud creates a public hooks.nabu.casa address for this integration. The long random address is the protection here; Nabu Casa does not pass on seven.io's signature headers.",
         "data": {
           "event_types": "Webhook types"
         },
@@ -142,6 +146,71 @@
         "rcs": "RCS (incoming messages and status)",
         "sms_mo": "Incoming SMS",
         "dlr": "SMS delivery reports"
+      }
+    },
+    "channel": {
+      "options": {
+        "auto": "Auto (RCS, SMS fallback)",
+        "rcs": "RCS only",
+        "sms": "SMS",
+        "voice": "Voice call (text-to-speech)"
+      }
+    }
+  },
+  "services": {
+    "send_message": {
+      "name": "Send message",
+      "description": "Sends an RCS message (with SMS fallback), an SMS or a text-to-speech call via seven.io. Returns message ID, channel and price per recipient.",
+      "fields": {
+        "to": {
+          "name": "Recipients",
+          "description": "Phone numbers in international format, e.g. +491701234567. RCS in test mode only reaches unlocked test numbers."
+        },
+        "message": {
+          "name": "Message",
+          "description": "Text of the message. For a rich card it is the description below the title."
+        },
+        "channel": {
+          "name": "Channel",
+          "description": "Auto sends RCS and lets seven.io fall back to SMS. RCS only fails if RCS is not possible."
+        },
+        "title": {
+          "name": "Title",
+          "description": "Turns the message into a rich card with this title."
+        },
+        "image_url": {
+          "name": "Image URL",
+          "description": "Publicly reachable picture or video; turns the message into a rich card. In the SMS fallback it becomes a link."
+        },
+        "buttons": {
+          "name": "Buttons",
+          "description": "List of button labels (reply buttons) or objects with text plus url, phone_number, latitude/longitude or postback_data. Up to 4 in a rich card, otherwise up to 11. Taps arrive as seven_io_message_received with postback_data."
+        },
+        "config_entry_id": {
+          "name": "seven.io account",
+          "description": "Only needed with more than one seven.io account."
+        },
+        "rcs_object": {
+          "name": "RCS object",
+          "description": "Complete RCS message object in seven.io format (text/richcard/carousel/file plus suggestions); replaces title, picture and buttons."
+        },
+        "ttl": {
+          "name": "Validity",
+          "description": "Minutes seven.io keeps trying to deliver the RCS message (default 2880)."
+        },
+        "label": {
+          "name": "Label",
+          "description": "Label for seven.io statistics."
+        },
+        "foreign_id": {
+          "name": "Own ID",
+          "description": "Returned in status reports."
+        }
+      },
+      "sections": {
+        "advanced": {
+          "name": "Advanced"
+        }
       }
     }
   },

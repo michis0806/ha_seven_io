@@ -9,8 +9,8 @@ files, read receipts) and your **account balance**.
 
 [Deutsche Beschreibung weiter unten.](#deutsch)
 
-> **Status 0.1:** setup, webhooks, incoming messages and sensors are in place.
-> Sending (SMS, RCS with buttons/images/cards, voice calls) follows in 0.2 — see
+> **Status 0.2:** sending (RCS with SMS fallback, SMS, voice calls), incoming
+> messages and sensors work. Contacts with their own `notify` entities follow — see
 > [Roadmap](#roadmap).
 
 ## Why
@@ -41,6 +41,48 @@ cannot show it.
 
 All entities belong to one service device per seven.io account.
 
+## Sending
+
+Action `seven_io.send_message`:
+
+```yaml
+action: seven_io.send_message
+data:
+  to: "+491701234567"
+  message: The front door has been open for 10 minutes.
+  buttons:
+    - text: Lock it
+      postback_data: lock_front_door
+    - Ignore
+response_variable: result
+```
+
+| Field | Description |
+|---|---|
+| `to` | One or more phone numbers |
+| `message` | Text; in a rich card the description below the title |
+| `channel` | `auto` (default: RCS, seven.io falls back to SMS), `rcs`, `sms`, `voice` (text-to-speech call) |
+| `title` | Turns the message into a rich card with this title |
+| `image_url` | Public picture/video URL; turns the message into a rich card |
+| `buttons` | Labels (reply buttons) or objects: `text` plus `postback_data`, `url`, `phone_number`, `latitude`/`longitude` or `type: share_location` |
+| `rcs_object` | Complete RCS object in [seven.io format](https://docs.seven.io/en/rest-api/objects/rcs-content) (carousels, files …) |
+| `ttl`, `label`, `foreign_id` | Validity in minutes, statistics label, own ID |
+| `config_entry_id` | Only with more than one seven.io account |
+
+How the message is built:
+
+- Plain text stays a plain RCS text message.
+- Up to four buttons, a title or a picture produce a **rich card** — seven.io bills
+  buttons below a plain text as a second message, inside a card they are free.
+  Without a title the card is titled "Home Assistant". Five to eleven buttons
+  without title/picture hang below the text.
+- The SMS fallback (and `channel: sms`) contains title, text, the picture URL and
+  the targets of URL/phone buttons.
+
+The response lists `to`, `channel`, `id`, `price`, `success`, `error` and the
+`fallback` per recipient plus `total_price`. The balance sensor is updated from
+every send response.
+
 ## Incoming messages
 
 During setup you choose how seven.io reaches Home Assistant:
@@ -56,11 +98,11 @@ their IDs. It only ever deletes these — webhooks you already use in the same
 account are never touched. Removing the integration removes its webhooks and the
 cloudhook.
 
-**Signing secret:** with the signing secret from the seven.io dashboard
-(Developer → API settings) every delivery is checked: HMAC-SHA256 signature,
-timestamp at most 5 minutes off and every nonce accepted only once. Without it,
-the random webhook URL is the only protection. Set it whenever messages trigger
-automations.
+**Signing secret (optional):** with the signing key from the seven.io dashboard
+(Developer → Settings) every delivery to your **own URL** is checked: HMAC-SHA256
+signature, timestamp at most 5 minutes off and every nonce accepted only once.
+The **Nabu Casa cloudhook does not pass on** the signature headers; there the long
+random cloudhook address is the protection and the secret is ignored.
 
 ### Events
 
@@ -69,7 +111,7 @@ automations.
 | Field | Content |
 |---|---|
 | `channel` | `rcs` or `sms` |
-| `sender` | Phone number of the sender |
+| `sender` | Phone number of the sender, international without `+` (e.g. `491701234567`) |
 | `content_type` | `text`, `suggestion_response` (button tapped), `location`, `user_file` |
 | `text` | Message text, or the label of the tapped button |
 | `postback_data` | `postbackData` of the tapped button |
@@ -78,18 +120,19 @@ automations.
 | `message_id`, `agent_id`, `time`, `recipient` | Metadata |
 | `raw` | Unmodified payload from seven.io |
 
-`seven_io_message_status`: `channel`, `message_id`, `status` (RCS: `DELIVERED`,
-`READ`, `IS_TYPING`; SMS: delivery report status), `number`, `foreign_id`,
-`timestamp`, `raw`.
+`seven_io_message_status`: `channel`, `message_id` (the `id` from the send
+response), `status` (RCS: `DELIVERED`, `READ`, `IS_TYPING`; SMS: delivery report
+status), `foreign_id`, `timestamp`, `raw`. seven.io sends no phone number with RCS
+status reports.
 
 `seven_io_agent_status_changed`: `agent_id`, `from_status`, `to_status` — for
 example when an agent moves from `pending` to `launched`.
 
 Every event also carries `config_entry_id`.
 
-> The payload formats come from seven.io's official JS client and documentation and
-> have not been verified against every message type yet. That is why `raw` is
-> included — please open an issue if a field stays empty.
+> Text, button replies and status reports are verified against real deliveries;
+> locations and files follow seven.io's documentation. `raw` carries the unmodified
+> payload — please open an issue if a field stays empty.
 
 Example: react to a button reply
 
@@ -110,7 +153,7 @@ actions:
 ```
 
 Always check the sender as in the example before anything security relevant —
-in 0.2 contacts will take care of that.
+contacts will take care of that in a later version.
 
 ## Installation
 
@@ -135,8 +178,9 @@ Settings → Devices & services → *Add integration* → **seven.io**
 1. **API key** — create it in the seven.io dashboard (Developer → API keys). It needs
    access to balance, RCS and webhooks; sending will additionally need SMS, RCS and
    voice. A subaccount keeps private and business use apart.
-2. **RCS agent, SMS sender, signing secret** — the agent list shows each agent's
-   status. SMS sender: up to 11 letters/digits or up to 16 digits.
+2. **RCS agent, SMS sender, caller ID for voice calls, signing secret** — the agent
+   list shows each agent's status. SMS sender: up to 11 letters/digits or up to 16
+   digits. All optional.
 3. **Incoming messages** — Nabu Casa, own URL or none, plus the webhook types
    (RCS, incoming SMS, SMS delivery reports).
 
@@ -145,20 +189,18 @@ key starts a re-authentication (Settings → Repairs).
 
 ## Roadmap
 
-- **0.2 – Sending:** contacts (name, number, default channel) with their own
-  `notify` and event entities; action `seven_io.send_message` with channel
-  `auto` (RCS first, SMS fallback), buttons, pictures/files, rich cards,
-  carousels; response data with message ID and price.
-- **0.3:** RCS capability lookup per contact, "read"/"typing" events, revoking
-  undelivered messages, voice calls (text-to-speech), blueprint for questions
-  with buttons.
+- **Contacts** (name, number, default channel) with their own `notify` and event
+  entities and a sender allow list for triggers.
+- RCS capability lookup per contact, sending "read"/"typing", revoking
+  undelivered messages, blueprint for questions with buttons.
 
 ## Limitations
 
 - No API for the list of unlocked RCS test numbers.
 - Incoming SMS need an inbound number at seven.io.
-- seven.io itself allows a 30-second window for signatures; the integration
-  accepts 5 minutes (like seven's JS client) and blocks replays via the nonce.
+- Signature checks only with your own URL (see above). seven.io itself allows a
+  30-second window; the integration accepts 5 minutes (like seven's JS client) and
+  blocks replays via the nonce.
 
 ## Disclaimer
 
@@ -172,8 +214,8 @@ their brand. Use at your own risk; messages cost money.
 Home-Assistant-Integration für [seven.io](https://www.seven.io): **RCS und SMS**,
 **eingehende RCS-Nachrichten als Auslöser für Automationen** und das **Guthaben**.
 
-- **Stand 0.1:** Einrichtung, Webhooks, eingehende Nachrichten und Sensoren. Senden
-  (SMS, RCS mit Buttons/Bildern/Karten, Sprachanruf) kommt mit 0.2.
+- **Stand 0.2:** Senden (RCS mit SMS als Ersatz, SMS, Sprachanruf), eingehende
+  Nachrichten und Sensoren. Kontakte mit eigenen `notify`-Entities folgen.
 - **Warum:** Die Integration von seven.io selbst ist eine YAML-`notify`-Plattform
   für SMS und Anrufe — ohne RCS, ohne Empfang, ohne Guthaben.
 - **RCS im Testbetrieb:** Ein Agent erreicht dann nur die Nummern, die du im
@@ -189,17 +231,25 @@ Home-Assistant-Integration für [seven.io](https://www.seven.io): **RCS und SMS*
 - **Webhooks:** Die Integration meldet ihre eigenen Webhooks bei seven.io an und
   löscht nur diese wieder — vorhandene Webhooks im Konto bleiben unberührt. Beim
   Entfernen der Integration verschwinden ihre Webhooks und der Cloudhook.
-- **Signing Secret:** Damit wird jede Zustellung geprüft (HMAC-SHA256, Zeitstempel
-  höchstens 5 Minuten daneben, jede Nonce nur einmal). Unbedingt setzen, sobald
-  Nachrichten Automationen auslösen.
+- **Senden:** Aktion `seven_io.send_message` mit `to`, `message`, `channel` (`auto` =
+  RCS mit SMS als Ersatz, `rcs`, `sms`, `voice`), `title`, `image_url`, `buttons`
+  (Texte oder Objekte mit `postback_data`, `url`, `phone_number`, Koordinaten) und
+  `rcs_object` für alles Weitere. Bis zu vier Buttons, ein Titel oder ein Bild
+  ergeben eine Rich Card — Buttons unter reinem Text rechnet seven.io als zweite
+  Nachricht ab. Die Antwort liefert je Empfänger Message-ID, Kanal und Preis; das
+  Guthaben wird aus jeder Versand-Antwort nachgezogen.
+- **Signierschlüssel (optional):** Damit wird jede Zustellung an eine **eigene URL**
+  geprüft (HMAC-SHA256, Zeitstempel höchstens 5 Minuten daneben, jede Nonce nur
+  einmal). Der **Nabu-Casa-Cloudhook reicht die Signatur-Header nicht weiter**; dort
+  schützt die lange Zufallsadresse, der Schlüssel wird ignoriert.
 - **Events:** `seven_io_message_received` (Text, Button-Antwort mit
   `postback_data`, Standort, Datei), `seven_io_message_status` (zugestellt,
   gelesen, schreibt; SMS-Zustellberichte) und `seven_io_agent_status_changed`.
   Felder siehe Tabelle oben; `raw` enthält die unveränderten Daten von seven.io.
+  Absender kommen international ohne `+` (z. B. `491701234567`), RCS-Statusmeldungen
+  ohne Nummer — zugeordnet wird über die Message-ID aus der Versand-Antwort.
 - **Entities:** Guthaben (alle 30 Minuten), RCS-Agent (alle 6 Stunden), Letzter
   Webhook (Diagnose).
-- **Fahrplan:** 0.2 Kontakte mit eigenen `notify`- und Event-Entities und die
-  Aktion `seven_io.send_message` (Kanal `auto` = RCS zuerst mit SMS-Fallback,
-  Buttons, Bilder, Rich Cards, Karussell); 0.3 RCS-Fähigkeitsprüfung je Kontakt,
-  Lese-/Tipp-Events, Zurückziehen, Sprachanruf und ein Blueprint für Fragen mit
-  Buttons.
+- **Fahrplan:** Kontakte mit eigenen `notify`- und Event-Entities und Absender-
+  Freigabe für Auslöser; RCS-Fähigkeitsprüfung je Kontakt, „gelesen“/„schreibt“
+  senden, Zurückziehen und ein Blueprint für Fragen mit Buttons.

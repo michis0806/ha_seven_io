@@ -17,12 +17,14 @@
         "data": {
           "rcs_agent": "RCS-Agent",
           "sms_sender": "SMS-Absender",
+          "voice_sender": "Absendernummer für Sprachanrufe",
           "signing_secret": "Signing Secret"
         },
         "data_description": {
           "rcs_agent": "Absender für RCS-Nachrichten. In Klammern der Status: test, pending oder launched (generische seven-Agents: wait, approved oder denied).",
           "sms_sender": "Bis 11 Buchstaben/Ziffern oder bis 16 Ziffern. Leer = Vorgabe von seven.io.",
-          "signing_secret": "Aus dem seven.io-Dashboard (Developer → API-Einstellungen). Damit wird jeder eingehende Webhook auf eine gültige Signatur geprüft. Dringend empfohlen, sobald Nachrichten Automationen auslösen."
+          "voice_sender": "Eine bei seven.io verifizierte Nummer (Eingangs- oder Shared-Nummer). Leer = Vorgabe von seven.io.",
+          "signing_secret": "Aus dem seven.io-Dashboard (Developer → API-Einstellungen). Damit wird jeder eingehende Webhook auf eine gültige Signatur geprüft. Wirkt nur mit eigener URL: Der Nabu-Casa-Cloudhook reicht die Signatur-Header nicht weiter. Optional."
         }
       },
       "webhook": {
@@ -36,7 +38,7 @@
       },
       "nabu_casa": {
         "title": "Nabu Casa",
-        "description": "Home Assistant Cloud legt für diese Integration eine öffentliche hooks.nabu.casa-Adresse an.",
+        "description": "Home Assistant Cloud legt für diese Integration eine öffentliche hooks.nabu.casa-Adresse an. Geschützt ist sie durch die lange Zufallsadresse; die Signatur-Header von seven.io reicht Nabu Casa nicht weiter.",
         "data": {
           "event_types": "Webhook-Typen"
         },
@@ -86,12 +88,14 @@
         "data": {
           "rcs_agent": "RCS-Agent",
           "sms_sender": "SMS-Absender",
+          "voice_sender": "Absendernummer für Sprachanrufe",
           "signing_secret": "Signing Secret"
         },
         "data_description": {
           "rcs_agent": "Absender für RCS-Nachrichten. In Klammern der Status: test, pending oder launched (generische seven-Agents: wait, approved oder denied).",
           "sms_sender": "Bis 11 Buchstaben/Ziffern oder bis 16 Ziffern. Leer = Vorgabe von seven.io.",
-          "signing_secret": "Aus dem seven.io-Dashboard (Developer → API-Einstellungen). Damit wird jeder eingehende Webhook auf eine gültige Signatur geprüft. Dringend empfohlen, sobald Nachrichten Automationen auslösen."
+          "voice_sender": "Eine bei seven.io verifizierte Nummer (Eingangs- oder Shared-Nummer). Leer = Vorgabe von seven.io.",
+          "signing_secret": "Aus dem seven.io-Dashboard (Developer → API-Einstellungen). Damit wird jeder eingehende Webhook auf eine gültige Signatur geprüft. Wirkt nur mit eigener URL: Der Nabu-Casa-Cloudhook reicht die Signatur-Header nicht weiter. Optional."
         }
       },
       "webhook": {
@@ -105,7 +109,7 @@
       },
       "nabu_casa": {
         "title": "Nabu Casa",
-        "description": "Home Assistant Cloud legt für diese Integration eine öffentliche hooks.nabu.casa-Adresse an.",
+        "description": "Home Assistant Cloud legt für diese Integration eine öffentliche hooks.nabu.casa-Adresse an. Geschützt ist sie durch die lange Zufallsadresse; die Signatur-Header von seven.io reicht Nabu Casa nicht weiter.",
         "data": {
           "event_types": "Webhook-Typen"
         },
@@ -142,6 +146,71 @@
         "rcs": "RCS (eingehende Nachrichten und Status)",
         "sms_mo": "Eingehende SMS",
         "dlr": "SMS-Zustellberichte"
+      }
+    },
+    "channel": {
+      "options": {
+        "auto": "Automatisch (RCS, SMS als Ersatz)",
+        "rcs": "Nur RCS",
+        "sms": "SMS",
+        "voice": "Sprachanruf (Text-to-Speech)"
+      }
+    }
+  },
+  "services": {
+    "send_message": {
+      "name": "Nachricht senden",
+      "description": "Sendet über seven.io eine RCS-Nachricht (mit SMS als Ersatz), eine SMS oder einen Sprachanruf. Liefert je Empfänger Message-ID, Kanal und Preis zurück.",
+      "fields": {
+        "to": {
+          "name": "Empfänger",
+          "description": "Rufnummern im internationalen Format, z. B. +491701234567. RCS im Testbetrieb erreicht nur freigeschaltete Testnummern."
+        },
+        "message": {
+          "name": "Nachricht",
+          "description": "Text der Nachricht. Bei einer Rich Card die Beschreibung unter dem Titel."
+        },
+        "channel": {
+          "name": "Kanal",
+          "description": "Automatisch sendet RCS und lässt seven.io auf SMS ausweichen. Nur RCS schlägt fehl, wenn RCS nicht geht."
+        },
+        "title": {
+          "name": "Titel",
+          "description": "Macht aus der Nachricht eine Rich Card mit diesem Titel."
+        },
+        "image_url": {
+          "name": "Bild-URL",
+          "description": "Öffentlich erreichbares Bild oder Video; macht aus der Nachricht eine Rich Card. In der Ersatz-SMS wird es ein Link."
+        },
+        "buttons": {
+          "name": "Buttons",
+          "description": "Liste von Button-Texten (Antwort-Buttons) oder Objekte mit text plus url, phone_number, latitude/longitude oder postback_data. Bis zu 4 in einer Rich Card, sonst bis zu 11. Ein Tipp kommt als seven_io_message_received mit postback_data an."
+        },
+        "config_entry_id": {
+          "name": "seven.io-Konto",
+          "description": "Nur nötig bei mehreren seven.io-Konten."
+        },
+        "rcs_object": {
+          "name": "RCS-Objekt",
+          "description": "Vollständiges RCS-Nachrichtenobjekt im seven.io-Format (text/richcard/carousel/file plus suggestions); ersetzt Titel, Bild und Buttons."
+        },
+        "ttl": {
+          "name": "Gültigkeit",
+          "description": "Minuten, die seven.io die RCS-Nachricht zuzustellen versucht (Standard 2880)."
+        },
+        "label": {
+          "name": "Label",
+          "description": "Bezeichnung für die Statistik bei seven.io."
+        },
+        "foreign_id": {
+          "name": "Eigene ID",
+          "description": "Kommt in Statusmeldungen zurück."
+        }
+      },
+      "sections": {
+        "advanced": {
+          "name": "Erweitert"
+        }
       }
     }
   },
