@@ -23,7 +23,7 @@
         "data_description": {
           "rcs_agent": "Absender für RCS-Nachrichten. In Klammern der Status: test, pending oder launched (generische seven-Agents: wait, approved oder denied).",
           "sms_sender": "Bis 11 Buchstaben/Ziffern oder bis 16 Ziffern. Leer = Vorgabe von seven.io.",
-          "voice_sender": "Eine bei seven.io verifizierte Nummer (Eingangs- oder Shared-Nummer). Leer = Vorgabe von seven.io.",
+          "voice_sender": "Eine bei seven.io verifizierte oder gebuchte Nummer. Leer = seven.io ruft von einer eigenen Nummer an (gesehen: +49 431 …, Kiel), die der Angerufene nicht zuordnen kann.",
           "signing_secret": "Aus dem seven.io-Dashboard (Developer → API-Einstellungen). Damit wird jeder eingehende Webhook auf eine gültige Signatur geprüft. Wirkt nur mit eigener URL: Der Nabu-Casa-Cloudhook reicht die Signatur-Header nicht weiter. Optional."
         }
       },
@@ -99,7 +99,7 @@
         "data_description": {
           "rcs_agent": "Absender für RCS-Nachrichten. In Klammern der Status: test, pending oder launched (generische seven-Agents: wait, approved oder denied).",
           "sms_sender": "Bis 11 Buchstaben/Ziffern oder bis 16 Ziffern. Leer = Vorgabe von seven.io.",
-          "voice_sender": "Eine bei seven.io verifizierte Nummer (Eingangs- oder Shared-Nummer). Leer = Vorgabe von seven.io.",
+          "voice_sender": "Eine bei seven.io verifizierte oder gebuchte Nummer. Leer = seven.io ruft von einer eigenen Nummer an (gesehen: +49 431 …, Kiel), die der Angerufene nicht zuordnen kann.",
           "signing_secret": "Aus dem seven.io-Dashboard (Developer → API-Einstellungen). Damit wird jeder eingehende Webhook auf eine gültige Signatur geprüft. Wirkt nur mit eigener URL: Der Nabu-Casa-Cloudhook reicht die Signatur-Header nicht weiter. Optional."
         }
       },
