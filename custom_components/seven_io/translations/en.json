@@ -23,7 +23,7 @@
         "data_description": {
           "rcs_agent": "Sender for RCS messages. Status in brackets: test, pending or launched (generic seven agents: wait, approved or denied).",
           "sms_sender": "Up to 11 letters/digits or up to 16 digits. Empty = seven.io default.",
-          "voice_sender": "A number verified at seven.io or booked there. Empty = seven.io calls from one of its own numbers (seen: +49 431 …, Kiel) that recipients will not recognise.",
+          "voice_sender": "A number verified at seven.io or booked there. Empty = the default sender from your seven.io settings; without one, seven.io calls from one of its own numbers (+49 431 …, Kiel).",
           "signing_secret": "From the seven.io dashboard (Developer → API settings). With it, every incoming webhook is checked for a valid signature. Only works with your own URL: the Nabu Casa cloudhook does not pass the signature headers on. Optional."
         }
       },
@@ -99,7 +99,7 @@
         "data_description": {
           "rcs_agent": "Sender for RCS messages. Status in brackets: test, pending or launched (generic seven agents: wait, approved or denied).",
           "sms_sender": "Up to 11 letters/digits or up to 16 digits. Empty = seven.io default.",
-          "voice_sender": "A number verified at seven.io or booked there. Empty = seven.io calls from one of its own numbers (seen: +49 431 …, Kiel) that recipients will not recognise.",
+          "voice_sender": "A number verified at seven.io or booked there. Empty = the default sender from your seven.io settings; without one, seven.io calls from one of its own numbers (+49 431 …, Kiel).",
           "signing_secret": "From the seven.io dashboard (Developer → API settings). With it, every incoming webhook is checked for a valid signature. Only works with your own URL: the Nabu Casa cloudhook does not pass the signature headers on. Optional."
         }
       },

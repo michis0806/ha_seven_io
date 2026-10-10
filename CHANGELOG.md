@@ -2,8 +2,9 @@
 
 ## 0.3.1
 
-- Hinweistext „Absendernummer für Sprachanrufe“ präzisiert: Ohne Eintrag ruft seven.io
-  von einer eigenen Kieler Nummer (+49 431 …) an.
+- Hinweistext „Absendernummer für Sprachanrufe“ präzisiert: Ohne Eintrag gilt der
+  Standard-Absender aus den seven.io-Einstellungen (auch für Sprachanrufe, getestet);
+  ist keiner gesetzt, ruft seven.io von einer eigenen Kieler Nummer (+49 431 …) an.
 
 ## 0.3.0
 
